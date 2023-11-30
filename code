@@ -1,0 +1,58 @@
+import tkinter as tk
+from tkinter import ttk
+import datetime
+import winsound
+
+class AlarmClockApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Alarm Clock")
+
+        self.alarm_time_var = tk.StringVar()
+        self.alarm_time_var.set("12:00 AM")
+
+        self.create_widgets()
+
+    def create_widgets(self):
+        # Time Entry
+        ttk.Label(self.root, text="Set Alarm Time:").grid(row=0, column=0, padx=10, pady=10)
+        time_entry = ttk.Entry(self.root, textvariable=self.alarm_time_var)
+        time_entry.grid(row=0, column=1, padx=10, pady=10)
+
+        # Set Alarm Button
+        set_alarm_button = ttk.Button(self.root, text="Set Alarm", command=self.set_alarm)
+        set_alarm_button.grid(row=1, column=0, columnspan=2, pady=10)
+
+    def set_alarm(self):
+        alarm_time_str = self.alarm_time_var.get()
+        try:
+            alarm_time = datetime.datetime.strptime(alarm_time_str, "%I:%M %p").time()
+        except ValueError:
+            tk.messagebox.showerror("Error", "Invalid time format. Please use HH:MM AM/PM.")
+            return
+
+        current_time = datetime.datetime.now().time()
+
+        alarm_seconds = self.time_to_seconds(alarm_time)
+        current_seconds = self.time_to_seconds(current_time)
+
+        if alarm_seconds <= current_seconds:
+            tk.messagebox.showwarning("Warning", "Please set a future time.")
+            return
+
+        time_difference = alarm_seconds - current_seconds
+        self.root.after(int(time_difference * 1000), self.play_alarm_sound)
+
+    def time_to_seconds(self, t):
+        return t.hour * 3600 + t.minute * 60 + t.second
+
+    def play_alarm_sound(self):
+        frequency = 2500  # Set Frequency To 2500 Hertz
+        duration = 1000  # Set Duration To 1000 ms == 1 second
+        winsound.Beep(frequency, duration)
+        tk.messagebox.showinfo("Alarm", "Time's up!")
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = AlarmClockApp(root)
+    root.mainloop()
